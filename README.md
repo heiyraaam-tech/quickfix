@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # QuickFix: Home help, made easy
 
 A local-services marketplace for Pune: customers book repairs, cleaning and house help (one-time or recurring); professionals register, get approved by an admin, and accept jobs; admins run the operation.
@@ -181,3 +182,7 @@ Password hashing (Werkzeug scrypt), server-side sessions with HttpOnly + SameSit
 7. **Professional onboarding:** register a new professional, complete the profile (note the pending banner and that they don't appear in matching).
 8. **Admin** (the account from `create-admin`): approve/reject with a reason, then show Overview metrics (real numbers), Services & pricing, Bookings, Complaints, Review moderation, and the Audit log.
 9. **Close with the Known limitations list.** Say plainly what is not built (payments, notifications, verification documents).
+=======
+# quickfix
+local services marketplace built with Flask
+>>>>>>> 38e028a4deb1ebe697e78ac69c12d1fc35d16620
