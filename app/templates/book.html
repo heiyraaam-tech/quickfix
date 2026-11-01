@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Book {{ service.name }} · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap page-head"><div class="crumbs"><a href="{{ url_for('main.service_detail', slug=service.slug) }}">{{ service.name }}</a> / Book</div><h1 style="font-size:2rem">Book {{ service.name|lower }}</h1></div>
+<form id="booking-form" method="post" class="wrap split" style="padding-bottom:40px" data-service="{{ service.slug }}" data-house-help="0">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="grid">
+    <section class="card"><h3>1. What needs doing?</h3>
+      <div class="field"><label for="details">Describe the job</label><textarea id="details" name="details" maxlength="1000" placeholder="For example: kitchen tap keeps dripping">{{ form.get('details','') }}</textarea></div>
+      {% if service.needs_duration_choice %}
+      <div class="field"><label for="minutes">How long?</label><select id="minutes" name="minutes">{% for m in service.durations %}<option value="{{ m }}" {% if (form.get('minutes') or service.default_minutes)|string == m|string %}selected{% endif %}>{{ m|hours }}</option>{% endfor %}</select></div>
+      {% else %}<input type="hidden" name="minutes" value="{{ service.default_minutes }}">{% endif %}
+    </section>
+    <section class="card"><h3>2. Where?</h3>
+      {% include "_address_fields.html" %}
+    </section>
+    <section class="card"><h3>3. When?</h3>
+      <div class="grid2">
+        <div class="field"><label for="date">Date</label><input id="date" name="date" type="date" required value="{{ form.get('date','') }}"></div>
+        <div class="field"><label for="time">Start time</label><input id="time" name="time" type="time" step="1800" required value="{{ form.get('time','') }}"></div>
+      </div>
+      <div class="hint">Start at least 1 hour from now, within 60 days.</div>
+    </section>
+    <section class="card"><h3>4. Who?</h3><div id="providers"><p class="muted small">Choose an address, date and time to see who is available.</p></div><div id="alternatives"></div></section>
+    <section class="card"><h3>5. Anything else?</h3>
+      <div class="field"><label for="instructions">Instructions for the professional (optional)</label><textarea id="instructions" name="instructions" maxlength="1000" placeholder="Gate code, parking, pets...">{{ form.get('instructions','') }}</textarea></div>
+      <div class="hint">Only the professional who accepts this booking will see your address and instructions.</div>
+    </section>
+  </div>
+  <aside class="card sticky summary"><h3>Price summary</h3><div id="summary" aria-live="polite"><div class="skeleton"></div><div class="skeleton" style="width:60%"></div></div>
+    <button class="btn block" type="submit" style="margin-top:12px">Confirm booking</button>
+    <p class="hint">Payment: cash after the job. Online payment is not available yet.</p></aside>
+</form>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/booking.js') }}" defer></script>{% endblock %}

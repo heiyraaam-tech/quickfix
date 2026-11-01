@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% from "macros.html" import booking_badge, badge %}
+{% block title %}Bookings · Admin{% endblock %}
+{% block content %}
+<div class="wrap page-head"><h1 style="font-size:2rem">Bookings</h1></div>
+<div class="wrap" style="padding-bottom:40px">
+  <form method="get" class="row" style="margin-bottom:12px"><label class="sr-only" for="q">Reference</label><input id="q" name="q" placeholder="Reference e.g. QF-ABC123" style="max-width:260px"><label class="sr-only" for="st">Status</label><select id="st" name="status" style="max-width:200px"><option value="">All statuses</option>{% for s in statuses %}<option value="{{ s }}" {% if s == status %}selected{% endif %}>{{ s.replace('_',' ')|capitalize }}</option>{% endfor %}</select><button class="btn secondary" type="submit">Filter</button></form>
+  <div class="table-wrap"><table><thead><tr><th>Ref</th><th>Service</th><th>When</th><th>Customer</th><th>Professional</th><th>Status</th><th>Amount</th><th>Payment</th></tr></thead><tbody>
+  {% for b in items %}<tr><td><a href="{{ url_for('admin.booking_detail', ref=b.reference) }}">{{ b.reference }}</a></td><td>{{ b.service.name }}</td><td>{{ b.scheduled_start|dt }}</td><td>{{ b.customer.name }}</td><td>{{ b.professional.user.name if b.professional else '–' }}</td><td>{{ booking_badge(b) }}</td><td>{{ b.amount_due|inr }}</td><td>{{ badge(b.payment.status) }}</td></tr>{% else %}<tr><td colspan="8" class="muted">No bookings match.</td></tr>{% endfor %}
+  </tbody></table></div>
+</div>
+{% endblock %}

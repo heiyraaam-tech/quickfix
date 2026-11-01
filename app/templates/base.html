@@ -1,0 +1,85 @@
+{% from "macros.html" import icon, logo %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta name="theme-color" content="#0B7285">
+  <title>{% block title %}QuickFix: Home help, made easy{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', filename='images/favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body data-auth="{{ 1 if current_user.is_authenticated else 0 }}">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="logo" href="{{ url_for('main.home') }}" aria-label="QuickFix home">{{ logo() }}</a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">{{ icon('menu') }}</button>
+    <nav class="nav" id="site-nav" aria-label="Main">
+      <a href="{{ url_for('main.services') }}" {% if request.endpoint in ('main.services','main.service_detail') %}aria-current="page"{% endif %}>Services</a>
+      <a href="{{ url_for('main.house_help') }}" {% if request.endpoint == 'main.house_help' %}aria-current="page"{% endif %}>House help</a>
+      {% if not current_user.is_authenticated or current_user.role == 'customer' %}
+        <a href="{{ url_for('main.become_pro') }}">Become a professional</a>
+      {% endif %}
+      <span class="loc-pill">{{ icon('pin') }}<label class="sr-only" for="nav-locality">Your locality</label>
+        <select id="nav-locality" data-locality-select>
+          <option value="">Choose locality</option>
+          {% for l in nav_localities %}<option value="{{ l.id }}" {% if selected_locality and selected_locality.id == l.id %}selected{% endif %}>{{ l.name }}</option>{% endfor %}
+        </select></span>
+      {% if current_user.is_authenticated %}
+        {% if current_user.role == 'customer' %}<a href="{{ url_for('customer.my_bookings') }}">My bookings</a>
+        {% elif current_user.role == 'professional' %}<a href="{{ url_for('professional.dashboard') }}">Dashboard</a>
+        {% else %}<a href="{{ url_for('admin.dashboard') }}">Admin</a>{% endif %}
+        <a href="{{ url_for('customer.notifications') }}" aria-label="Notifications">Alerts <span class="badge-dot" data-unread {% if not unread_count %}hidden{% endif %}>{{ unread_count }}</span></a>
+        <div class="menu" data-open="false">
+          <button class="link" type="button" aria-expanded="false" aria-haspopup="true" id="user-menu-btn">{{ current_user.first_name }} ▾</button>
+          <div class="menu-panel" role="menu" aria-labelledby="user-menu-btn">
+            <a href="{{ url_for('customer.account') }}" role="menuitem">Account</a>
+            <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="link" type="submit" role="menuitem">Log out</button></form>
+          </div>
+        </div>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}">Log in</a>
+        <a class="btn small" href="{{ url_for('auth.register') }}">Sign up</a>
+      {% endif %}
+    </nav>
+  </div>
+  {% if current_user.is_authenticated and current_user.role in ('professional','admin') %}
+  <div class="subnav"><div class="wrap">
+    {% if current_user.role == 'professional' %}
+      {% for ep, label in [('professional.dashboard','Dashboard'),('professional.jobs','Jobs'),('professional.availability','Availability'),('professional.profile','Profile'),('professional.earnings','Earnings')] %}<a href="{{ url_for(ep) }}" {% if request.endpoint == ep %}aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+    {% else %}
+      {% for ep, label in [('admin.dashboard','Overview'),('admin.professionals','Professionals'),('admin.users','Users'),('admin.bookings','Bookings'),('admin.services','Services'),('admin.localities','Localities'),('admin.complaints','Complaints'),('admin.review_list','Reviews'),('admin.audit_log','Audit')] %}<a href="{{ url_for(ep) }}" {% if request.endpoint == ep %}aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+    {% endif %}
+  </div></div>
+  {% endif %}
+</header>
+
+<main id="main">{% block content %}{% endblock %}</main>
+
+<footer class="site-footer">
+  <div class="wrap foot-grid">
+    <div><div class="logo" style="color:#fff">{{ logo() }}</div><p class="small" style="margin-top:10px">Home help, made easy. Launching in Pune.</p>
+      <p class="small">{% if support_email %}Email <a href="mailto:{{ support_email }}">{{ support_email }}</a>{% else %}Support contact details have not been set up yet.{% endif %}</p></div>
+    <div><h4>Services</h4><ul><li><a href="{{ url_for('main.services') }}">All services</a></li><li><a href="{{ url_for('main.house_help') }}">House help</a></li><li><a href="{{ url_for('main.become_pro') }}">Become a professional</a></li></ul></div>
+    <div><h4>Help</h4><ul><li><a href="{{ url_for('main.support') }}">Support</a></li><li><a href="{{ url_for('main.faq') }}">FAQs</a></li><li><a href="{{ url_for('main.policy', slug='safety') }}">Safety</a></li><li><a href="{{ url_for('main.policy', slug='payments') }}">Payments &amp; refunds</a></li></ul></div>
+    <div><h4>Policies</h4><ul><li><a href="{{ url_for('main.policy', slug='terms') }}">Terms</a></li><li><a href="{{ url_for('main.policy', slug='privacy') }}">Privacy</a></li><li><a href="{{ url_for('main.policy', slug='cancellation') }}">Cancellation</a></li><li><a href="{{ url_for('main.policy', slug='professional-guidelines') }}">Professional guidelines</a></li></ul></div>
+  </div>
+  <div class="wrap small" style="margin-top:24px;opacity:.8">QuickFix MVP. Policies are drafts pending legal review.</div>
+</footer>
+
+<div class="toasts" id="toasts" aria-live="polite">
+  {% with messages = get_flashed_messages(with_categories=true) %}{% for cat, msg in messages %}
+    <div class="toast {{ cat if cat in ('success','error','info') else 'info' }}" role="{{ 'alert' if cat == 'error' else 'status' }}"><span>{{ msg }}</span><button type="button" aria-label="Dismiss">×</button></div>
+  {% endfor %}{% endwith %}
+</div>
+
+<dialog id="confirm-dialog" aria-labelledby="confirm-title">
+  <h3 id="confirm-title">Are you sure?</h3><p id="confirm-text" class="muted"></p>
+  <div class="row"><button type="button" class="btn ghost" id="confirm-no">Keep it</button><button type="button" class="btn danger" id="confirm-yes">Yes, continue</button></div>
+</dialog>
+<script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

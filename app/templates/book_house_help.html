@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Book house help · QuickFix{% endblock %}
+{% block content %}
+{% set mode = form.get('mode') or request.args.get('mode') or 'once' %}
+<div class="wrap page-head"><div class="crumbs"><a href="{{ url_for('main.house_help') }}">House help</a> / Book</div><h1 style="font-size:2rem">Book house help</h1></div>
+<form id="booking-form" method="post" class="wrap split" style="padding-bottom:40px" data-service="{{ tasks[0].slug }}" data-house-help="1">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="grid">
+    <section class="card"><h3>1. Tasks</h3>
+      <fieldset style="border:0;padding:0;margin:0"><legend class="sr-only">Tasks</legend>
+      {% for t in tasks %}<label class="choice"><input type="checkbox" name="task" value="{{ t.slug }}" {% if t.slug in form.getlist('task') or (not form and t.slug == preselect) %}checked{% endif %}><span><strong>{{ t.name }}</strong><span class="meta">{{ t.hourly_rate|inr }}/hr · {{ t.description }}</span></span></label>{% endfor %}
+      </fieldset>
+      <div class="hint">Combined tasks are billed at the highest hourly rate among them.</div>
+    </section>
+    <section class="card"><h3>2. One visit or regular visits?</h3>
+      <label class="choice"><input type="radio" name="mode" value="once" {% if mode != 'recurring' %}checked{% endif %}><span><strong>One time</strong><span class="meta">A single visit on a date you choose</span></span></label>
+      <label class="choice"><input type="radio" name="mode" value="recurring" {% if mode == 'recurring' %}checked{% endif %}><span><strong>Recurring</strong><span class="meta">Repeat on chosen weekdays between two dates (up to 90 days). Each visit is confirmed only when a professional accepts it.</span></span></label>
+    </section>
+    <section class="card"><h3>3. When and how long?</h3>
+      <div data-mode="once"><div class="field"><label for="date">Date</label><input id="date" name="date" type="date" min="{{ today }}" value="{{ form.get('date','') }}"></div></div>
+      <div data-mode="recurring" hidden>
+        <fieldset class="field" style="border:0;padding:0"><legend style="font-weight:600;font-size:.92rem;margin-bottom:6px">Repeat on</legend>
+          <div class="chips">{% for d in weekday_names %}<label class="chip"><input type="checkbox" name="weekday" value="{{ loop.index0 }}" {% if loop.index0|string in form.getlist('weekday') %}checked{% endif %}>{{ d[:3] }}</label>{% endfor %}</div></fieldset>
+        <div class="grid2"><div class="field"><label for="start_date">First day</label><input id="start_date" name="start_date" type="date" min="{{ today }}" value="{{ form.get('start_date','') }}"></div>
+          <div class="field"><label for="end_date">Last day</label><input id="end_date" name="end_date" type="date" min="{{ today }}" value="{{ form.get('end_date','') }}"></div></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label for="time">Start time</label><input id="time" name="time" type="time" step="1800" required value="{{ form.get('time','') }}"></div>
+        <div class="field"><label for="minutes">Duration</label><select id="minutes" name="minutes">{% for m in tasks[0].durations %}<option value="{{ m }}" {% if (form.get('minutes') or 120)|string == m|string %}selected{% endif %}>{{ m|hours }}{% if m == 240 %} (half day){% endif %}</option>{% endfor %}</select></div>
+      </div>
+    </section>
+    <section class="card"><h3>4. Where?</h3>{% include "_address_fields.html" %}</section>
+    <section class="card" data-mode="once"><h3>5. Who?</h3><div id="providers"><p class="muted small">Choose an address, date and time to see who is available.</p></div><div id="alternatives"></div></section>
+    <section class="card"><h3>Special instructions</h3><div class="field"><label for="instructions" class="sr-only">Instructions</label><textarea id="instructions" name="instructions" maxlength="1000" placeholder="Which rooms, what to use, pets...">{{ form.get('instructions','') }}</textarea></div></section>
+  </div>
+  <aside class="card sticky summary"><h3>Price per visit</h3><div id="summary" aria-live="polite"><div class="skeleton"></div></div>
+    <button class="btn block" type="submit" style="margin-top:12px">{% if mode == 'recurring' %}Create schedule{% else %}Confirm booking{% endif %}</button>
+    <p class="hint">Payment: cash after each visit. Recurring visits are requests until accepted.</p></aside>
+</form>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/booking.js') }}" defer></script>{% endblock %}

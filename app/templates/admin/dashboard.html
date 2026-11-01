@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Admin · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap page-head"><h1 style="font-size:2rem">Overview</h1><p class="muted small">All numbers come from real records in the database.</p></div>
+<div class="wrap" style="padding-bottom:40px">
+  <div class="grid cols4 keep2">
+    <a class="card flat service-card" href="{{ url_for('admin.professionals', status='pending') }}"><div class="stat">{{ stats.pending_pros }}</div><div class="muted small">Applications to review</div></a>
+    <div class="card flat"><div class="stat">{{ stats.customers }}</div><div class="muted small">Customers</div></div>
+    <div class="card flat"><div class="stat">{{ stats.professionals }}</div><div class="muted small">Professionals</div></div>
+    <div class="card flat"><div class="stat">{{ stats.bookings }}</div><div class="muted small">Bookings ({{ stats.completed }} completed)</div></div>
+    <div class="card flat"><div class="stat">{{ stats.paid|inr }}</div><div class="muted small">Recorded as paid (cash)</div></div>
+    <div class="card flat"><div class="stat">{{ stats.owed|inr }}</div><div class="muted small">Completed, unpaid</div></div>
+    <a class="card flat service-card" href="{{ url_for('admin.complaints') }}"><div class="stat">{{ stats.open_complaints }}</div><div class="muted small">Open complaints</div></a>
+    <a class="card flat service-card" href="{{ url_for('admin.review_list') }}"><div class="stat">{{ stats.open_reports }}</div><div class="muted small">Reported reviews</div></a>
+  </div>
+  <h2 style="font-size:1.3rem;margin-top:28px">Bookings by status</h2>
+  <div class="row">{% for s in statuses %}<a class="badge {{ s }}" href="{{ url_for('admin.bookings', status=s) }}">{{ s.replace('_',' ')|capitalize }}: {{ counts.get(s, 0) }}</a>{% endfor %}</div>
+  <h2 style="font-size:1.3rem;margin-top:28px">Recurring house help</h2>
+  <p>{{ stats.active_schedules }} active schedule(s). Visits are generated when customers open a schedule, or with <code>flask generate-visits</code>. No background scheduler is running.</p>
+  <form method="post" action="{{ url_for('admin.generate_visits') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn secondary small" type="submit">Generate missing visits now</button></form>
+</div>
+{% endblock %}

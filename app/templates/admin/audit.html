@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Audit log · Admin{% endblock %}
+{% block content %}
+<div class="wrap page-head"><h1 style="font-size:2rem">Audit log</h1><p class="muted small">Sensitive administrator actions. The latest 300 entries.</p></div>
+<div class="wrap" style="padding-bottom:40px"><div class="table-wrap"><table><thead><tr><th>When</th><th>Admin</th><th>Action</th><th>Target</th><th>Detail</th></tr></thead><tbody>
+{% for a in items %}<tr><td>{{ a.created_at|dt }}</td><td>{{ a.actor.name if a.actor else 'system' }}</td><td>{{ a.action }}</td><td>{{ a.target_type or '' }} {{ a.target_id or '' }}</td><td>{{ a.detail or '' }}</td></tr>{% else %}<tr><td colspan="5" class="muted">Nothing recorded yet.</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% from "macros.html" import badge, empty %}
+{% block title %}Earnings · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap page-head"><h1 style="font-size:2rem">Earnings</h1><p class="muted">Based on your completed jobs. Customers pay you directly; QuickFix does not take or pay out money in this version.</p></div>
+<div class="wrap" style="padding-bottom:40px">
+  <div class="grid cols3" style="margin-bottom:20px"><div class="card flat"><div class="stat">{{ paid|inr }}</div><div class="muted small">Received (marked paid)</div></div><div class="card flat"><div class="stat">{{ owed|inr }}</div><div class="muted small">Completed, not yet marked paid</div></div><div class="card flat"><div class="stat">{{ done|length }}</div><div class="muted small">Completed jobs</div></div></div>
+  {% if done %}<div class="table-wrap"><table><thead><tr><th>Job</th><th>Service</th><th>Completed</th><th>Amount</th><th>Payment</th></tr></thead><tbody>
+  {% for b in done %}<tr><td><a href="{{ url_for('professional.job_detail', ref=b.reference) }}">{{ b.reference }}</a></td><td>{{ b.service.name }}</td><td>{{ b.completed_at|dt }}</td><td>{{ b.amount_due|inr }}</td><td>{{ badge(b.payment.status) }}</td></tr>{% endfor %}</tbody></table></div>
+  {% else %}{{ empty("No completed jobs yet", "Your earnings will be calculated from completed jobs.") }}{% endif %}
+</div>
+{% endblock %}

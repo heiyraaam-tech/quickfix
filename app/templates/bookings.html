@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% from "macros.html" import booking_card, empty %}
+{% block title %}My bookings · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap page-head"><h1 style="font-size:2rem">My bookings</h1></div>
+<div class="wrap" style="padding-bottom:32px">
+  <nav class="tabs" aria-label="Booking lists">
+    <a href="{{ url_for('customer.my_bookings', tab='upcoming') }}" {% if tab == 'upcoming' %}aria-current="page"{% endif %}>Upcoming ({{ upcoming|length }})</a>
+    <a href="{{ url_for('customer.my_bookings', tab='past') }}" {% if tab == 'past' %}aria-current="page"{% endif %}>Past ({{ past|length }})</a>
+    <a href="{{ url_for('customer.my_bookings', tab='schedules') }}" {% if tab == 'schedules' %}aria-current="page"{% endif %}>Recurring ({{ schedules|length }})</a>
+  </nav>
+  {% if tab == 'schedules' %}
+    {% for s in schedules %}<a class="card service-card" href="{{ url_for('customer.schedule_detail', ref=s.reference) }}" style="margin-bottom:12px"><strong>{{ s.service.name }}{% if s.tasks %} · {{ s.tasks|join(', ') }}{% endif %}</strong><span class="muted small">{{ s.weekday_names }} at {{ s.start_time.strftime('%I:%M %p') }} · {{ s.start_date|d }} to {{ s.end_date|d }} · {{ s.reference }}</span></a>
+    {% else %}{{ empty("No recurring schedules", "Set up weekly house help and your visits will appear here.", url_for('customer.book_house_help', mode='recurring'), "Set up a schedule") }}{% endfor %}
+  {% else %}
+    {% set items = upcoming if tab == 'upcoming' else past %}
+    <div class="grid cols2">{% for b in items %}{{ booking_card(b, url_for('customer.booking_detail', ref=b.reference), b.professional.user.name if b.professional else None) }}{% endfor %}</div>
+    {% if not items %}{{ empty("Nothing here yet", "Book a service and it will show up here.", url_for('main.services'), "Browse services") }}{% endif %}
+  {% endif %}
+</div>
+{% endblock %}

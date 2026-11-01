@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "macros.html" import icon, empty %}
+{% block title %}Services · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap page-head"><h1 style="font-size:2rem">Services</h1></div>
+<div class="wrap" style="padding-bottom:24px">
+  <form method="get" role="search" class="row" style="margin-bottom:12px">
+    <div style="flex:1;min-width:220px;position:relative"><label class="sr-only" for="q">Search services</label>
+      <input id="q" type="text" name="q" value="{{ q }}" placeholder="Search services" autocomplete="off" data-search="svc-suggest">
+      <div class="suggest" id="svc-suggest" style="left:0;right:0"></div></div>
+    {% if cat %}<input type="hidden" name="category" value="{{ cat }}">{% endif %}
+    <button class="btn" type="submit">Search</button>
+  </form>
+  <nav class="tabs" aria-label="Categories">
+    <a href="{{ url_for('main.services', q=q or None) }}" {% if not cat %}aria-current="page"{% endif %}>All</a>
+    {% for c in categories %}<a href="{{ url_for('main.services', category=c.slug, q=q or None) }}" {% if cat == c.slug %}aria-current="page"{% endif %}>{{ c.name }}</a>{% endfor %}
+  </nav>
+  {% if services %}
+  <div class="grid cols3">
+    {% for s in services %}
+    <a class="card service-card" href="{{ url_for('main.service_detail', slug=s.slug) }}">
+      <div class="row"><span class="ico">{{ icon(s.icon) }}</span><div><strong>{{ s.name }}</strong><div class="muted small">{{ s.category.name }}</div></div></div>
+      <p class="muted small" style="margin:6px 0 0">{{ s.description }}</p>
+      <span class="price small">{% if s.pricing_model == 'hourly' %}From {{ s.hourly_rate|inr }}<small>/hr</small>
+        {% elif s.pricing_model == 'quote' %}{{ s.visit_fee|inr }}<small> visit, then quote</small>
+        {% elif s.pricing_model == 'visit_estimate' %}{{ s.visit_fee|inr }}<small> visit + estimate</small>
+        {% else %}From {{ (s.base_price + s.visit_fee)|inr }}{% endif %}</span>
+    </a>{% endfor %}
+  </div>
+  {% else %}
+    {{ empty("No services match that search", "Try a shorter word like “clean”, “fan” or “tap”, or browse all categories.", url_for('main.services'), "See all services") }}
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% from "macros.html" import empty %}
+{% block title %}Notifications · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:760px;padding:32px 20px 40px">
+  <div class="row" style="justify-content:space-between"><h1 style="font-size:2rem;margin:0">Notifications</h1>
+    {% if items %}<form method="post" action="{{ url_for('customer.notifications_read') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn ghost small" type="submit">Mark all as read</button></form>{% endif %}</div>
+  <p class="muted small">In-app notifications only. Email, SMS and WhatsApp are not connected yet.</p>
+  {% for n in items %}<a class="card flat service-card" href="{{ url_for('customer.notification_open', nid=n.id) }}" style="margin-bottom:10px;{% if not n.is_read %}border-color:var(--brand);background:var(--brand-tint){% endif %}"><strong>{{ n.title }}</strong><span class="small">{{ n.body }}</span><span class="muted small">{{ n.created_at|dt }}</span></a>
+  {% else %}{{ empty("You're all caught up", "Booking updates will appear here.") }}{% endfor %}
+</div>
+{% endblock %}

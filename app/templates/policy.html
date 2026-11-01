@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:760px;padding:32px 20px">
+  <h1 style="font-size:2rem">{{ title }}</h1>
+  <div class="notice warn">{{ draft }}</div>
+  {% for p in paras %}<p>{{ p }}</p>{% endfor %}
+  <hr style="border:0;border-top:1px solid var(--line);margin:28px 0">
+  <p class="small muted">Other pages: {% for k, v in policies.items() %}<a href="{{ url_for('main.policy', slug=k) }}">{{ v[0] }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</p>
+</div>
+{% endblock %}

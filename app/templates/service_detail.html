@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "macros.html" import icon %}
+{% block title %}{{ service.name }} · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap page-head">
+  <div class="crumbs"><a href="{{ url_for('main.services') }}">Services</a> / {{ service.category.name }}</div>
+  <h1 style="font-size:2.2rem">{{ service.name }}</h1>
+</div>
+<div class="wrap split" style="padding-bottom:32px">
+  <div class="card"><p>{{ service.description }}</p>
+    <h3>How pricing works</h3>
+    <ul class="muted">
+      {% if service.visit_fee %}<li>Visit fee: {{ service.visit_fee|inr }}</li>{% endif %}
+      {% if service.pricing_model == 'fixed' %}<li>Fixed service charge: {{ service.base_price|inr }}</li>{% endif %}
+      {% if service.pricing_model == 'visit_estimate' %}<li>Estimated service charge: {{ service.base_price|inr }}. The professional confirms the final amount after seeing the work.</li>{% endif %}
+      {% if service.pricing_model == 'hourly' %}<li>{{ service.hourly_rate|inr }} per hour. Choose {{ service.durations|map('hours')|join(', ') }}.</li>{% endif %}
+      {% if service.pricing_model == 'duration' %}<li>{{ service.base_price|inr }} includes {{ service.min_minutes|hours }}. Extra time is {{ service.hourly_rate|inr }} per hour.</li>{% endif %}
+      {% if service.pricing_model == 'quote' %}<li>Only the visit fee is charged first. The professional gives you a quote for the work.</li>{% endif %}
+      <li>Pay in cash after the job.</li>
+    </ul>
+  </div>
+  <div class="card sticky"><h3>From {{ price.total|inr }}{% if price.is_estimate %} <small class="muted">(estimate)</small>{% endif %}</h3>
+    <p class="muted small">for {{ price.minutes|hours }}. You'll see the exact price before you confirm.</p>
+    {% if current_user.is_authenticated and current_user.role != 'customer' %}
+      <p class="notice">You're logged in as a {{ current_user.role }}. Use a customer account to book.</p>
+    {% else %}
+      <a class="btn block" href="{{ url_for('customer.book', slug=service.slug) }}">Book {{ service.name|lower }}</a>
+      {% if not current_user.is_authenticated %}<p class="hint">You'll be asked to log in or sign up first.</p>{% endif %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

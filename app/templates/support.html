@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Support · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:760px;padding:32px 20px">
+  <h1 style="font-size:2rem">Support</h1>
+  <p class="muted">Start with the <a href="{{ url_for('main.faq') }}">FAQs</a>. If something went wrong with a booking, tell us here and an administrator will look at it.</p>
+  {% if support_email %}<p>You can also email <a href="mailto:{{ support_email }}">{{ support_email }}</a>.</p>{% else %}<div class="notice">No public support email, phone number or WhatsApp line is set up yet. Reports sent from this page go to the QuickFix admin team.</div>{% endif %}
+  {% if current_user.is_authenticated and current_user.role in ('customer','professional') %}
+  <form class="card" method="post" action="{{ url_for('main.complaint') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field"><label for="subject">Subject</label><input id="subject" name="subject" type="text" maxlength="120" required></div>
+    {% if bookings %}<div class="field"><label for="bref">Related booking (optional)</label><select id="bref" name="booking_ref"><option value="">None</option>{% for b in bookings %}<option value="{{ b.reference }}">{{ b.reference }} · {{ b.service.name }} · {{ b.scheduled_start|d }}</option>{% endfor %}</select></div>{% endif %}
+    <div class="field"><label for="message">What happened?</label><textarea id="message" name="message" maxlength="2000" required></textarea></div>
+    <button class="btn" type="submit">Send report</button>
+  </form>
+  {% else %}<p><a class="btn" href="{{ url_for('auth.login', next=url_for('main.support')) }}">Log in to send a report</a></p>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from "macros.html" import booking_badge, badge, booking_card, empty %}
+{% block title %}Schedule {{ s.reference }} · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap page-head"><div class="crumbs"><a href="{{ url_for('customer.my_bookings', tab='schedules') }}">Recurring</a> / {{ s.reference }}</div>
+<div class="row"><h1 style="font-size:2rem;margin:0">{{ s.service.name }}{% if s.tasks|length > 1 %} + more{% endif %}</h1>{{ badge(s.status) }}</div></div>
+<div class="wrap split" style="padding-bottom:40px">
+  <div>
+    <div class="notice">Each visit is confirmed only when a professional accepts it. “Awaiting a professional” means nobody has accepted yet. New visits are created {{ 28 }} days ahead whenever you open this page.</div>
+    <h2 style="font-size:1.3rem">Upcoming visits</h2>
+    <div class="grid">{% for v in upcoming %}{{ booking_card(v, url_for('customer.booking_detail', ref=v.reference), v.professional.user.name if v.professional else 'not assigned yet') }}{% else %}{{ empty("No upcoming visits", "Visits appear here after they are generated for the dates you chose.") }}{% endfor %}</div>
+    {% if past %}<h2 style="font-size:1.3rem;margin-top:28px">Earlier visits</h2><div class="grid cols2">{% for v in past %}{{ booking_card(v, url_for('customer.booking_detail', ref=v.reference)) }}{% endfor %}</div>{% endif %}
+  </div>
+  <aside class="grid">
+    <section class="card"><h3>The pattern</h3>
+      <p>{{ s.weekday_names }} at {{ s.start_time.strftime('%I:%M %p') }}<br>{{ s.duration_minutes|hours }} each<br>{{ s.start_date|d }} to {{ s.end_date|d }}</p>
+      <p class="muted small">{{ s.address.full }}</p>{% if s.tasks %}<p class="small">Tasks: {{ s.tasks|join(', ') }}</p>{% endif %}
+    </section>
+    {% if s.status == 'active' %}
+    <section class="card"><h3>Change the pattern</h3>
+      <form method="post" action="{{ url_for('customer.update_schedule', ref=s.reference) }}" data-confirm="Changing the pattern cancels upcoming visits that haven't started and creates new ones. Continue?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <fieldset class="field" style="border:0;padding:0"><legend style="font-weight:600;font-size:.92rem;margin-bottom:6px">Repeat on</legend><div class="chips">{% for d in weekday_names %}<label class="chip"><input type="checkbox" name="weekday" value="{{ loop.index0 }}" {% if loop.index0 in s.weekday_list %}checked{% endif %}>{{ d[:3] }}</label>{% endfor %}</div></fieldset>
+        <div class="field"><label for="u_time">Start time</label><input id="u_time" type="time" name="time" step="1800" value="{{ s.start_time.strftime('%H:%M') }}" required></div>
+        <div class="field"><label for="u_end">Last day</label><input id="u_end" type="date" name="end_date" min="{{ today }}" value="{{ s.end_date.isoformat() }}" required></div>
+        <button class="btn secondary block" type="submit">Save changes</button>
+      </form></section>
+    <section class="card"><h3>Cancel schedule</h3>
+      <form method="post" action="{{ url_for('customer.cancel_schedule', ref=s.reference) }}" data-confirm="Cancel this schedule and all upcoming visits?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="field"><label for="c_reason">Reason (optional)</label><input id="c_reason" type="text" name="reason" maxlength="300"></div>
+        <button class="btn danger block" type="submit">Cancel schedule</button></form></section>
+    {% elif s.cancel_reason %}<section class="card"><p class="muted">Cancelled: {{ s.cancel_reason }}</p></section>{% endif %}
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Log in · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:440px;padding:40px 20px">
+  <h1 style="font-size:2rem">Log in</h1>
+  <form class="card" method="post" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field"><label for="identifier">Email or mobile number</label><input id="identifier" name="identifier" type="text" autocomplete="username" value="{{ identifier or '' }}" required autofocus></div>
+    <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required></div>
+    <button class="btn block" type="submit">Log in</button>
+  </form>
+  <p class="center muted" style="margin-top:16px">New to QuickFix? <a href="{{ url_for('auth.register', next=request.args.get('next')) }}">Create an account</a><br>
+  Offering services? <a href="{{ url_for('auth.register_professional') }}">Apply as a professional</a></p>
+</div>
+{% endblock %}

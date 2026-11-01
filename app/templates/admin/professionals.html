@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "macros.html" import badge, empty %}
+{% block title %}Professionals · Admin{% endblock %}
+{% block content %}
+<div class="wrap page-head"><h1 style="font-size:2rem">Professionals</h1></div>
+<div class="wrap" style="padding-bottom:40px">
+  <nav class="tabs">{% for s, l in [('', 'All'),('pending','Pending'),('approved','Approved'),('rejected','Rejected'),('suspended','Suspended')] %}<a href="{{ url_for('admin.professionals', status=s or None) }}" {% if status == s %}aria-current="page"{% endif %}>{{ l }}</a>{% endfor %}</nav>
+  {% for p in pros %}
+  <div class="card" style="margin-bottom:12px">
+    <div class="row" style="justify-content:space-between"><div><strong>{{ p.user.name }}</strong> <span class="muted small">{{ p.user.email }} · {{ p.user.phone or 'no phone' }}</span></div><div class="row">{{ badge(p.verification_status) }}{{ badge(p.availability_status) }}</div></div>
+    <p class="small muted" style="margin:6px 0">{{ p.experience_years or 0 }} yrs · Services: {{ p.offerings|map(attribute='service.name')|join(', ') or 'none yet' }} · Areas: {{ p.areas|map(attribute='locality.name')|join(', ') or 'none yet' }} · Rating: {{ p.rating_avg or 'no reviews' }}</p>
+    {% if p.bio %}<p class="small">{{ p.bio }}</p>{% endif %}{% if p.rejection_reason %}<p class="small notice bad">Reason: {{ p.rejection_reason }}</p>{% endif %}
+    <div class="row">
+      {% if p.verification_status in ('pending','rejected') %}<form method="post" action="{{ url_for('admin.professional_action', pid=p.id, action='approve') }}" class="inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn small" type="submit">Approve</button></form>{% endif %}
+      {% if p.verification_status == 'suspended' %}<form method="post" action="{{ url_for('admin.professional_action', pid=p.id, action='reactivate') }}" class="inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn small" type="submit">Reactivate</button></form>{% endif %}
+      {% if p.verification_status in ('pending','approved') %}
+      <form method="post" action="{{ url_for('admin.professional_action', pid=p.id, action='reject' if p.verification_status == 'pending' else 'suspend') }}" class="row"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label class="sr-only" for="r{{ p.id }}">Reason</label><input id="r{{ p.id }}" name="reason" placeholder="Reason (required)" required style="width:220px;min-height:36px"><button class="btn danger small" type="submit">{{ 'Reject' if p.verification_status == 'pending' else 'Suspend' }}</button></form>{% endif %}
+    </div>
+  </div>
+  {% else %}{{ empty("No professionals here", "Applications will show up here as people register.") }}{% endfor %}
+</div>
+{% endblock %}

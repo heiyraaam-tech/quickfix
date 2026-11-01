@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% from "macros.html" import booking_card, empty %}
+{% block title %}Jobs · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap page-head"><h1 style="font-size:2rem">Jobs</h1></div>
+<div class="wrap" style="padding-bottom:40px">
+  <nav class="tabs" aria-label="Job lists">{% for k, label in [('requests','Requests'),('upcoming','Upcoming'),('completed','Completed'),('closed','Cancelled / declined')] %}<a href="{{ url_for('professional.jobs', tab=k) }}" {% if tab == k %}aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}</nav>
+  <div class="grid cols2">{% for b in items %}{{ booking_card(b, url_for('professional.job_detail', ref=b.reference)) }}{% endfor %}
+    {% for b in open_reqs %}{{ booking_card(b, url_for('professional.job_detail', ref=b.reference), 'open request') }}{% endfor %}</div>
+  {% if not items and not open_reqs %}{{ empty("Nothing here", "Jobs in this list will show up here.") }}{% endif %}
+</div>
+{% endblock %}

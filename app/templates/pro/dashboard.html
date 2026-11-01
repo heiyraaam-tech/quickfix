@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "macros.html" import badge, booking_card, empty %}
+{% block title %}Dashboard · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap page-head"><div class="row" style="justify-content:space-between"><h1 style="font-size:2rem;margin:0">Hello, {{ current_user.first_name }}</h1>
+  <div class="row">{{ badge(p.verification_status) }} {{ badge(p.availability_status) }}</div></div></div>
+<div class="wrap" style="padding-bottom:40px">
+  {% include "pro/_status_banner.html" %}
+  <div class="grid cols4 keep2" style="margin-bottom:24px">
+    <div class="card flat"><div class="stat">{{ direct|length + open_reqs|length }}</div><div class="muted small">Requests</div></div>
+    <div class="card flat"><div class="stat">{{ upcoming|length }}</div><div class="muted small">Upcoming jobs</div></div>
+    <div class="card flat"><div class="stat">{{ done }}</div><div class="muted small">Completed</div></div>
+    <div class="card flat"><div class="stat">{{ p.rating_avg or '–' }}</div><div class="muted small">{{ p.rating_count }} review{{ 's' if p.rating_count != 1 }}</div></div>
+  </div>
+  <h2 style="font-size:1.3rem">Requests for you</h2>
+  <div class="grid cols2">
+    {% for b in direct %}{{ booking_card(b, url_for('professional.job_detail', ref=b.reference)) }}{% endfor %}
+    {% for b in open_reqs %}{{ booking_card(b, url_for('professional.job_detail', ref=b.reference), 'open request') }}{% endfor %}
+  </div>
+  {% if not direct and not open_reqs %}{{ empty("No requests right now", "New requests that match your services, areas and hours will show here." if p.is_approved else "You'll receive requests once your profile is approved.") }}{% endif %}
+  <h2 style="font-size:1.3rem;margin-top:28px">Upcoming jobs</h2>
+  <div class="grid cols2">{% for b in upcoming %}{{ booking_card(b, url_for('professional.job_detail', ref=b.reference)) }}{% endfor %}</div>
+  {% if not upcoming %}{{ empty("No upcoming jobs", "Accepted jobs appear here.") }}{% endif %}
+</div>
+{% endblock %}

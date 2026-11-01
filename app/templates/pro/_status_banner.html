@@ -1,0 +1,5 @@
+{% from "macros.html" import badge %}
+{% if p.verification_status == 'pending' %}<div class="notice warn"><strong>Application under review.</strong> You can't receive bookings until an administrator approves your profile. Make sure your services and areas are filled in.</div>
+{% elif p.verification_status == 'rejected' %}<div class="notice bad"><strong>Application rejected.</strong> {{ p.rejection_reason }} <a href="{{ url_for('professional.profile') }}">Update your profile</a> to send it for review again.</div>
+{% elif p.verification_status == 'suspended' %}<div class="notice bad"><strong>Your account is suspended.</strong> {{ p.rejection_reason }} Contact support.</div>
+{% elif p.availability_status != 'available' %}<div class="notice warn">You're set to <strong>{{ p.availability_status }}</strong>, so you won't be offered new jobs. <a href="{{ url_for('professional.availability') }}">Change availability</a></div>{% endif %}

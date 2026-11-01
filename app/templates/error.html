@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap errpage"><div class="code">{{ code }}</div><h1 style="font-size:2rem">{{ title }}</h1><p class="muted">{{ text }}</p>
+<a class="btn" href="{{ url_for('main.home') }}">Go to the home page</a></div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% from "macros.html" import badge, stars %}
+{% block title %}Reviews · Admin{% endblock %}
+{% block content %}
+<div class="wrap page-head"><h1 style="font-size:2rem">Review moderation</h1></div>
+<div class="wrap" style="padding-bottom:40px">
+  <h2 style="font-size:1.3rem">Reports</h2>
+  {% for r in reports %}<div class="card flat" style="margin-bottom:10px"><div class="row" style="justify-content:space-between"><span>{{ stars(r.review.rating) }} “{{ r.review.comment or 'no comment' }}”</span>{{ badge(r.status) }}</div><p class="small muted">Reported by {{ r.reporter.name }}: {{ r.reason }}</p>
+    {% if r.status == 'open' %}<div class="row"><form method="post" action="{{ url_for('admin.review_action', rid=r.review_id, action='hide') }}" class="inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn danger small" type="submit">Hide review</button></form><form method="post" action="{{ url_for('admin.report_resolve', rid=r.id) }}" class="inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn ghost small" type="submit">Dismiss report</button></form></div>{% endif %}</div>{% else %}<p class="muted">No reports.</p>{% endfor %}
+  <h2 style="font-size:1.3rem;margin-top:28px">All reviews</h2>
+  <div class="table-wrap"><table><thead><tr><th>Rating</th><th>Comment</th><th>Professional</th><th>By</th><th>Status</th><th></th></tr></thead><tbody>
+  {% for r in reviews %}<tr><td>{{ stars(r.rating) }}</td><td>{{ r.comment }}</td><td>{{ r.professional.user.name }}</td><td>{{ r.customer.name }}</td><td>{{ badge(r.status) }}</td><td><form method="post" action="{{ url_for('admin.review_action', rid=r.id, action='show' if r.status == 'hidden' else 'hide') }}" class="inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn ghost small" type="submit">{{ 'Show' if r.status == 'hidden' else 'Hide' }}</button></form></td></tr>{% else %}<tr><td colspan="6" class="muted">No reviews yet.</td></tr>{% endfor %}</tbody></table></div>
+</div>
+{% endblock %}

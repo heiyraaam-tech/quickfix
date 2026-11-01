@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% from "macros.html" import booking_badge, badge, post_form, stars %}
+{% block title %}Job {{ b.reference }} · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap page-head"><div class="crumbs"><a href="{{ url_for('professional.jobs') }}">Jobs</a> / {{ b.reference }}</div>
+<div class="row"><h1 style="font-size:2rem;margin:0">{{ b.service.name }}</h1>{{ booking_badge(b) }}</div></div>
+<div class="wrap split" style="padding-bottom:40px">
+  <div class="grid">
+    <section class="card"><h3>Job</h3>
+      <p><strong>{{ b.scheduled_start|dt }}</strong> · {{ b.duration_minutes|hours }}</p>
+      {% if mine %}<p>{{ b.customer.name }}{% if b.customer.phone %} · {{ b.customer.phone }}{% endif %}<br><span class="muted">{{ b.address_text }}</span></p>
+      {% else %}<p class="muted">Area: {{ b.locality.name }}. The customer's name, phone and address are shown after you accept.</p>{% endif %}
+      {% if b.tasks %}<p>Tasks: {{ b.tasks|join(', ') }}</p>{% endif %}
+      {% if b.details %}<p>{{ b.details }}</p>{% endif %}
+      {% if mine and b.instructions %}<p class="muted">Instructions: {{ b.instructions }}</p>{% endif %}
+      {% if b.schedule_id %}<p class="small">Recurring visit ({{ b.schedule.reference }}).</p>{% endif %}
+      {% if b.status == 'cancelled' %}<p class="notice bad">Cancelled{% if b.cancel_reason %}: {{ b.cancel_reason }}{% endif %}</p>{% endif %}
+    </section>
+    <section class="card"><h3>Actions</h3>
+      {% if b.status == 'pending' %}
+        <div class="row">{{ post_form(url_for('professional.job_status', ref=b.reference), 'Accept job', 'btn', fields={'status':'accepted'}) }}
+        {% if mine %}{{ post_form(url_for('professional.job_status', ref=b.reference), 'Decline', 'btn danger', 'Decline this request?', {'status':'rejected'}) }}{% endif %}</div>
+        {% if b.schedule_id %}<div style="margin-top:10px">{{ post_form(url_for('professional.accept_series', ref=b.schedule.reference), 'Accept all pending visits in this schedule', 'btn secondary small', 'Accept every pending visit in this schedule that fits your calendar?') }}</div>{% endif %}
+      {% elif b.status == 'accepted' and mine %}
+        <div class="row">{{ post_form(url_for('professional.job_status', ref=b.reference), "I'm on the way", 'btn secondary', fields={'status':'on_the_way'}) }}{{ post_form(url_for('professional.job_status', ref=b.reference), 'Start job', 'btn', fields={'status':'in_progress'}) }}</div>
+      {% elif b.status == 'on_the_way' and mine %}{{ post_form(url_for('professional.job_status', ref=b.reference), 'Start job', 'btn', fields={'status':'in_progress'}) }}
+      {% elif b.status == 'in_progress' and mine %}
+        <form method="post" action="{{ url_for('professional.job_status', ref=b.reference) }}" data-confirm="Mark this job as completed?">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="status" value="completed">
+          {% if b.is_estimate %}<div class="field"><label for="fa">Final amount (₹){% if b.is_quote %} <span class="muted">required</span>{% endif %}</label><input id="fa" name="final_amount" type="number" min="1" max="200000" step="1" placeholder="{{ b.total_amount }}" {% if b.is_quote %}required{% endif %}><div class="hint">Leave empty to keep the estimate of {{ b.total_amount|inr }}.</div></div>{% endif %}
+          <button class="btn" type="submit">Mark completed</button></form>
+      {% elif b.status == 'completed' and mine %}
+        {% if b.payment.status == 'unpaid' %}{{ post_form(url_for('professional.job_paid', ref=b.reference), 'Mark ' ~ (b.amount_due|inr) ~ ' as received in cash', 'btn', 'Confirm you received this amount in cash?') }}{% else %}<p>Payment: {{ badge(b.payment.status) }}</p>{% endif %}
+      {% else %}<p class="muted">No actions available.</p>{% endif %}
+      {% if b.status in ('accepted','on_the_way') and mine %}
+        <form method="post" action="{{ url_for('professional.job_status', ref=b.reference) }}" data-confirm="Cancel this job? The customer will be told." style="margin-top:14px"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="status" value="cancelled">
+          <div class="field"><label for="n">Reason for cancelling</label><input id="n" name="note" type="text" maxlength="300" required></div><button class="btn danger small" type="submit">Cancel job</button></form>{% endif %}
+    </section>
+    {% if b.review and b.review.status == 'visible' and mine %}<section class="card"><h3>Customer review</h3><p>{{ stars(b.review.rating) }}</p><p>{{ b.review.comment }}</p>
+      <form method="post" action="{{ url_for('customer.report_review', rid=b.review.id) }}" class="row"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label class="sr-only" for="rr">Why report?</label><input id="rr" name="reason" placeholder="Why is this review inappropriate?" required style="flex:1"><button class="btn ghost small" type="submit">Report</button></form></section>{% endif %}
+  </div>
+  <aside class="card summary"><h3>Price</h3>
+    {% if b.visit_fee %}<div class="line"><span>Visit fee</span><span>{{ b.visit_fee|inr }}</span></div>{% endif %}{% if b.service_charge %}<div class="line"><span>Service{% if b.is_estimate %} (est.){% endif %}</span><span>{{ b.service_charge|inr }}</span></div>{% endif %}{% if b.duration_charge %}<div class="line"><span>Duration</span><span>{{ b.duration_charge|inr }}</span></div>{% endif %}
+    <div class="line total"><span>{{ 'Final' if b.final_amount is not none else 'Total' }}</span><span>{{ b.amount_due|inr }}</span></div>
+    <p>Payment: {{ badge(b.payment.status) }}</p>{% if b.price_note %}<p class="hint">{{ b.price_note }}</p>{% endif %}</aside>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% from "macros.html" import badge %}
+{% block title %}Users · Admin{% endblock %}
+{% block content %}
+<div class="wrap page-head"><h1 style="font-size:2rem">Users</h1></div>
+<div class="wrap" style="padding-bottom:40px">
+  <nav class="tabs">{% for r, l in [('', 'All'),('customer','Customers'),('professional','Professionals'),('admin','Admins')] %}<a href="{{ url_for('admin.users', role=r or None) }}" {% if role == r %}aria-current="page"{% endif %}>{{ l }}</a>{% endfor %}</nav>
+  <div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Joined</th><th>Status</th><th></th></tr></thead><tbody>
+  {% for u in users %}<tr><td>{{ u.name }}</td><td>{{ u.email }}</td><td>{{ u.phone or '' }}</td><td>{{ u.role }}</td><td>{{ u.created_at|d }}</td><td>{{ badge('active' if u.active else 'suspended') }}</td>
+    <td>{% if u.role != 'admin' %}<form method="post" action="{{ url_for('admin.user_action', uid=u.id, action='reactivate' if not u.active else 'suspend') }}" class="inline" data-confirm="{{ 'Reactivate' if not u.active else 'Suspend' }} {{ u.name }}?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn {{ 'secondary' if not u.active else 'danger' }} small" type="submit">{{ 'Reactivate' if not u.active else 'Suspend' }}</button></form>{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "macros.html" import badge %}
+{% block title %}Services · Admin{% endblock %}
+{% block content %}
+<div class="wrap page-head"><h1 style="font-size:2rem">Services and pricing</h1></div>
+<div class="wrap" style="padding-bottom:40px">
+  {% for c in categories %}
+  <div class="row" style="justify-content:space-between;margin:20px 0 8px"><h2 style="font-size:1.3rem;margin:0">{{ c.name }} {{ badge('active' if c.is_active else 'hidden', 'Active' if c.is_active else 'Hidden') }}</h2>
+    <form method="post" action="{{ url_for('admin.category_toggle', cid=c.id) }}" class="inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn ghost small" type="submit">{{ 'Hide category' if c.is_active else 'Show category' }}</button></form></div>
+  <div class="table-wrap"><table><thead><tr><th>Service</th><th>Model</th><th>Visit fee</th><th>Base</th><th>Hourly</th><th>Status</th><th></th></tr></thead><tbody>
+  {% for s in c.services %}<tr><td>{{ s.name }}</td><td>{{ s.pricing_model.replace('_',' ') }}</td><td>{{ s.visit_fee|inr }}</td><td>{{ s.base_price|inr }}</td><td>{{ s.hourly_rate|inr }}</td><td>{{ badge('active' if s.is_active else 'hidden', 'Active' if s.is_active else 'Inactive') }}</td><td><a class="btn ghost small" href="{{ url_for('admin.service_edit', sid=s.id) }}">Edit</a></td></tr>{% endfor %}
+  </tbody></table></div>{% endfor %}
+  <h2 style="font-size:1.3rem;margin-top:32px">Add a service</h2>
+  <form method="post" action="{{ url_for('admin.service_new') }}" class="card row" style="align-items:end"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div style="min-width:200px"><label for="ns">Name</label><input id="ns" name="name" required></div>
+    <div style="min-width:200px"><label for="nc">Category</label><select id="nc" name="category_id">{% for c in categories %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select></div>
+    <button class="btn" type="submit">Create</button></form>
+</div>
+{% endblock %}

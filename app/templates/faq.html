@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}FAQs · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:780px;padding:32px 20px"><h1 style="font-size:2rem">Frequently asked questions</h1>
+{% for q, a in faqs %}<details class="faq"><summary>{{ q }}</summary><p class="muted" style="margin-top:8px">{{ a }}</p></details>{% endfor %}
+<p style="margin-top:20px">Still stuck? <a href="{{ url_for('main.support') }}">Contact support</a>.</p></div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Account · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap page-head"><h1 style="font-size:2rem">Account settings</h1></div>
+<div class="wrap grid cols2" style="padding-bottom:40px;align-items:start">
+  <section class="card"><h3>Profile</h3>
+    <form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="profile">
+      <div class="field"><label for="name">Name</label><input id="name" name="name" type="text" value="{{ current_user.name }}" required></div>
+      <div class="field"><label for="email">Email</label><input id="email" type="email" value="{{ current_user.email }}" disabled><div class="hint">Your email can't be changed here.</div></div>
+      <div class="field"><label for="phone">Mobile number</label><input id="phone" name="phone" type="tel" value="{{ current_user.phone or '' }}"></div>
+      <button class="btn" type="submit">Save profile</button></form></section>
+  <section class="card"><h3>Change password</h3>
+    <form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="password">
+      <div class="field"><label for="current">Current password</label><input id="current" name="current" type="password" autocomplete="current-password" required></div>
+      <div class="field"><label for="new">New password</label><input id="new" name="new" type="password" autocomplete="new-password" required><div class="hint">At least 8 characters with a letter and a number.</div></div>
+      <button class="btn secondary" type="submit">Change password</button></form></section>
+  {% if current_user.role == 'customer' %}
+  <section class="card" style="grid-column:1/-1"><h3>Saved addresses</h3>
+    {% for a in addresses %}<div class="row" style="justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line-2)"><div><strong>{{ a.label }}</strong>{% if a.is_default %} <span class="badge approved">Default</span>{% endif %}<div class="muted small">{{ a.full }}</div></div>
+      <div class="row">{% if not a.is_default %}<form method="post" action="{{ url_for('customer.address_action', aid=a.id, action='default') }}" class="inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn ghost small" type="submit">Make default</button></form>{% endif %}
+      <form method="post" action="{{ url_for('customer.address_action', aid=a.id, action='delete') }}" class="inline" data-confirm="Remove this address?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn danger small" type="submit">Remove</button></form></div></div>
+    {% else %}<p class="muted">No saved addresses yet.</p>{% endfor %}
+    <h3 style="margin-top:20px">Add an address</h3>
+    <form method="post" action="{{ url_for('customer.add_address') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="address_id" value="new">
+      <div class="grid2"><div class="field"><label for="label">Label</label><input id="label" name="label" type="text" value="Home" maxlength="40"></div>
+      <div class="field"><label for="line1">House / flat, building, street</label><input id="line1" name="line1" type="text" required maxlength="200"></div>
+      <div class="field"><label for="locality_id">Locality</label><select id="locality_id" name="locality_id" required><option value="">Choose</option>{% for l in localities %}<option value="{{ l.id }}">{{ l.name }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="pincode">Pincode</label><input id="pincode" name="pincode" type="text" inputmode="numeric" maxlength="6" required></div></div>
+      <div class="field"><label for="landmark">Landmark (optional)</label><input id="landmark" name="landmark" type="text" maxlength="120"></div>
+      <button class="btn" type="submit">Save address</button></form></section>
+  {% endif %}
+</div>
+{% endblock %}

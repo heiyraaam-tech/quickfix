@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ s.name }} · Admin{% endblock %}
+{% block content %}
+<div class="wrap page-head"><div class="crumbs"><a href="{{ url_for('admin.services') }}">Services</a> / {{ s.name }}</div><h1 style="font-size:2rem">Edit {{ s.name }}</h1></div>
+<div class="wrap" style="max-width:720px;padding-bottom:40px">
+  <form class="card" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field"><label for="name">Name</label><input id="name" name="name" value="{{ s.name }}" required></div>
+    <div class="field"><label for="description">Description</label><input id="description" name="description" value="{{ s.description }}" maxlength="400"></div>
+    <div class="field"><label for="keywords">Search keywords</label><input id="keywords" name="keywords" value="{{ s.keywords }}"></div>
+    <div class="field"><label for="pricing_model">Pricing model</label><select id="pricing_model" name="pricing_model">{% for m, l in [('fixed','Fixed price'),('visit_estimate','Visit fee + estimate'),('hourly','Hourly'),('duration','Duration-based (base covers minimum time)'),('quote','Custom quote (visit fee only up front)')] %}<option value="{{ m }}" {% if s.pricing_model == m %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+    <div class="grid2">
+      <div class="field"><label for="visit_fee">Visit fee (₹)</label><input id="visit_fee" name="visit_fee" type="number" min="0" value="{{ s.visit_fee }}"></div>
+      <div class="field"><label for="base_price">Base / estimate price (₹)</label><input id="base_price" name="base_price" type="number" min="0" value="{{ s.base_price }}"></div>
+      <div class="field"><label for="hourly_rate">Hourly rate (₹)</label><input id="hourly_rate" name="hourly_rate" type="number" min="0" value="{{ s.hourly_rate }}"></div>
+      <div class="field"><label for="min_minutes">Minutes included in base</label><input id="min_minutes" name="min_minutes" type="number" min="0" value="{{ s.min_minutes }}"></div>
+      <div class="field"><label for="default_minutes">Default duration (minutes)</label><input id="default_minutes" name="default_minutes" type="number" min="15" value="{{ s.default_minutes }}"></div>
+      <div class="field"><label for="duration_options">Duration options (minutes, comma separated)</label><input id="duration_options" name="duration_options" value="{{ s.duration_options }}" placeholder="60,120,180"></div>
+    </div>
+    <label class="choice"><input type="checkbox" name="is_active" {% if s.is_active %}checked{% endif %}><span>Active (visible and bookable)</span></label>
+    <button class="btn" type="submit">Save service</button>
+  </form>
+</div>
+{% endblock %}

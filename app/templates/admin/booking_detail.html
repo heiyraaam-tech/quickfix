@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% from "macros.html" import booking_badge, badge %}
+{% block title %}{{ b.reference }} · Admin{% endblock %}
+{% block content %}
+<div class="wrap page-head"><div class="crumbs"><a href="{{ url_for('admin.bookings') }}">Bookings</a> / {{ b.reference }}</div><div class="row"><h1 style="font-size:2rem;margin:0">{{ b.service.name }}</h1>{{ booking_badge(b) }}</div></div>
+<div class="wrap split" style="padding-bottom:40px">
+  <div class="grid">
+    <section class="card"><p><strong>{{ b.scheduled_start|dt }}</strong> · {{ b.duration_minutes|hours }}</p><p>Customer: {{ b.customer.name }} ({{ b.customer.email }})<br>Professional: {{ b.professional.user.name if b.professional else 'not assigned' }}<br>Address: {{ b.address_text }}</p>
+      {% if b.tasks %}<p>Tasks: {{ b.tasks|join(', ') }}</p>{% endif %}{% if b.details %}<p>{{ b.details }}</p>{% endif %}{% if b.cancel_reason %}<p class="notice bad">{{ b.cancel_reason }}{% if b.late_cancellation %} (late cancellation){% endif %}</p>{% endif %}</section>
+    <section class="card"><h3>Admin actions</h3>
+      {% for ns in next_statuses %}{% if ns in ('cancelled','rejected','accepted','on_the_way','in_progress','completed') %}
+      <form method="post" class="row" style="margin-bottom:8px" data-confirm="Change status to {{ ns.replace('_',' ') }}?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="status"><input type="hidden" name="status" value="{{ ns }}"><label class="sr-only" for="n{{ ns }}">Note</label><input id="n{{ ns }}" name="note" placeholder="Note / reason" style="max-width:260px;min-height:36px"><button class="btn {{ 'danger' if ns in ('cancelled','rejected') else 'secondary' }} small" type="submit">{{ ns.replace('_',' ')|capitalize }}</button></form>{% endif %}{% endfor %}
+      {% if not next_statuses %}<p class="muted">This booking is closed.</p>{% endif %}
+      {% if b.status == 'completed' %}<div class="row">{% if b.payment.status == 'unpaid' %}<form method="post" class="inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="paid"><button class="btn small" type="submit">Mark paid (cash)</button></form>{% endif %}
+      {% if b.payment.status == 'paid' %}<form method="post" class="inline" data-confirm="Record a refund? This only records it; no money moves."><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="refund"><button class="btn danger small" type="submit">Record refund</button></form>{% endif %}</div>{% endif %}
+    </section>
+  </div>
+  <aside class="grid"><section class="card summary"><h3>Money</h3><div class="line"><span>Estimated / total</span><span>{{ b.total_amount|inr }}</span></div>{% if b.final_amount is not none %}<div class="line"><span>Final</span><span>{{ b.final_amount|inr }}</span></div>{% endif %}<p>Payment {{ badge(b.payment.status) }}</p></section>
+  <section class="card"><h3>History</h3><ul class="timeline">{% for h in b.history %}<li><strong>{{ h.to_status.replace('_',' ')|capitalize }}</strong> <span class="muted small">{{ h.created_at|dt }} · {{ h.actor.name if h.actor else 'system' }}</span>{% if h.note %}<div class="small muted">{{ h.note }}</div>{% endif %}</li>{% endfor %}</ul></section></aside>
+</div>
+{% endblock %}

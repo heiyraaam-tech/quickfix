@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% from "macros.html" import badge, empty %}
+{% block title %}Complaints · Admin{% endblock %}
+{% block content %}
+<div class="wrap page-head"><h1 style="font-size:2rem">Complaints and reports</h1></div>
+<div class="wrap" style="padding-bottom:40px">
+  {% for c in items %}<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between"><strong>{{ c.subject }}</strong>{{ badge(c.status) }}</div>
+    <p class="muted small">{{ c.user.name }} ({{ c.user.role }}) · {{ c.created_at|dt }}{% if c.booking %} · <a href="{{ url_for('admin.booking_detail', ref=c.booking.reference) }}">{{ c.booking.reference }}</a>{% endif %}</p><p>{{ c.message }}</p>
+    <form method="post" class="row"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="id" value="{{ c.id }}">
+      <label class="sr-only" for="s{{ c.id }}">Status</label><select id="s{{ c.id }}" name="status" style="max-width:160px">{% for s in ['open','in_review','resolved'] %}<option value="{{ s }}" {% if s == c.status %}selected{% endif %}>{{ s.replace('_',' ')|capitalize }}</option>{% endfor %}</select>
+      <label class="sr-only" for="a{{ c.id }}">Note</label><input id="a{{ c.id }}" name="admin_note" value="{{ c.admin_note or '' }}" placeholder="Internal note" style="flex:1;min-width:200px"><button class="btn secondary small" type="submit">Save</button></form></div>
+  {% else %}{{ empty("No complaints", "Reports from customers and professionals will appear here.") }}{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "macros.html" import icon %}
+{% block title %}House help · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap page-head"><h1 style="font-size:2.2rem">House help</h1>
+<p class="lead muted" style="max-width:60ch">Everyday help at home, booked by the hour. Book once, or set a weekly pattern.</p></div>
+<div class="wrap" style="padding-bottom:32px">
+  <div class="grid cols2">
+    <div class="card"><span class="ico">{{ icon('home') }}</span><h3 style="margin-top:10px">One-time help</h3><p class="muted">Pick tasks, a date, a start time and a duration (1 to 4 hours). Good for a one-off clean-up or a busy day.</p>
+      <a class="btn" href="{{ url_for('customer.book_house_help') }}">Book one visit</a></div>
+    <div class="card"><span class="ico">{{ icon('repeat') }}</span><h3 style="margin-top:10px">Recurring help</h3><p class="muted">Choose weekdays and a date range (up to 90 days). QuickFix creates the visits. Each one is <strong>confirmed only when a professional accepts it</strong>, and you can see which are still waiting.</p>
+      <a class="btn secondary" href="{{ url_for('customer.book_house_help', mode='recurring') }}">Set up a schedule</a></div>
+  </div>
+  <h2 style="margin-top:32px">Tasks and rates</h2>
+  <div class="grid cols3">{% for s in services %}<div class="card flat"><div class="row"><span class="ico">{{ icon(s.icon) }}</span><div><strong>{{ s.name }}</strong><div class="price small">{{ s.hourly_rate|inr }}<small>/hr</small></div></div></div><p class="muted small" style="margin:8px 0 0">{{ s.description }}</p></div>{% endfor %}</div>
+  <div class="notice warn" style="margin-top:24px">QuickFix does not provide live-in workers. Visits are scheduled slots with an approved professional. A future visit is not guaranteed until it is accepted.</div>
+</div>
+{% endblock %}

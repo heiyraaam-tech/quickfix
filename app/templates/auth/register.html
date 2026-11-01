@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Sign up · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:480px;padding:40px 20px">
+  <h1 style="font-size:2rem">{% if role == 'professional' %}Apply as a professional{% else %}Create your account{% endif %}</h1>
+  {% if role == 'professional' %}<p class="muted">Your application will be reviewed by QuickFix before you can receive bookings.</p>{% endif %}
+  <form class="card" method="post" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field"><label for="name">Full name</label><input id="name" name="name" type="text" autocomplete="name" value="{{ form.get('name','') }}" required></div>
+    <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" value="{{ form.get('email','') }}" required></div>
+    <div class="field"><label for="phone">Mobile number {% if role == 'customer' %}(optional){% endif %}</label><input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" value="{{ form.get('phone','') }}" {% if role == 'professional' %}required{% endif %}><div class="hint">10-digit Indian mobile number. You can log in with it.</div></div>
+    <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required><div class="hint">At least 8 characters, with a letter and a number.</div></div>
+    <div class="field"><label for="confirm">Confirm password</label><input id="confirm" name="confirm" type="password" autocomplete="new-password" required></div>
+    <button class="btn block" type="submit">{% if role == 'professional' %}Create account{% else %}Sign up{% endif %}</button>
+  </form>
+  <p class="center muted" style="margin-top:16px">Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+</div>
+{% endblock %}

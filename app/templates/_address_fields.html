@@ -1,0 +1,13 @@
+<div class="field"><label for="address_id">Address</label>
+  <select id="address_id" name="address_id">
+    {% for a in addresses %}<option value="{{ a.id }}" data-locality="{{ a.locality_id }}" {% if form.get('address_id') == a.id|string %}selected{% endif %}>{{ a.label }}: {{ a.line1 }}, {{ a.locality.name }}</option>{% endfor %}
+    <option value="new" {% if not addresses or form.get('address_id') == 'new' %}selected{% endif %}>Add a new address</option>
+  </select></div>
+<div data-new-address {% if addresses and form.get('address_id') != 'new' %}hidden{% endif %}>
+  <div class="field"><label for="line1">House / flat, building, street</label><input id="line1" name="line1" type="text" maxlength="200" value="{{ form.get('line1','') }}"></div>
+  <div class="grid2">
+    <div class="field"><label for="locality_id">Locality</label><select id="locality_id" name="locality_id"><option value="">Choose</option>{% for l in localities %}<option value="{{ l.id }}" {% if form.get('locality_id') == l.id|string or (not form and selected_locality and selected_locality.id == l.id) %}selected{% endif %}>{{ l.name }}</option>{% endfor %}</select></div>
+    <div class="field"><label for="pincode">Pincode</label><input id="pincode" name="pincode" type="text" inputmode="numeric" maxlength="6" value="{{ form.get('pincode','') }}"></div>
+  </div>
+  <div class="field"><label for="landmark">Landmark (optional)</label><input id="landmark" name="landmark" type="text" maxlength="120" value="{{ form.get('landmark','') }}"></div>
+</div>

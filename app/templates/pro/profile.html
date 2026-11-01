@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "macros.html" import badge %}
+{% block title %}Profile · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap page-head"><div class="row" style="justify-content:space-between"><h1 style="font-size:2rem;margin:0">Your profile</h1>{{ badge(p.verification_status) }}</div></div>
+<div class="wrap" style="padding-bottom:40px">
+  {% include "pro/_status_banner.html" %}
+  <form method="post" class="grid">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <section class="card"><h3>About you</h3>
+      <div class="field"><label for="bio">Short description</label><textarea id="bio" name="bio" maxlength="1000" placeholder="Your skills and how you work">{{ p.bio }}</textarea></div>
+      <div class="field" style="max-width:220px"><label for="experience">Years of experience</label><input id="experience" name="experience" type="number" min="0" max="60" value="{{ p.experience_years or 0 }}"></div></section>
+    <section class="card"><h3>Services you offer</h3><p class="muted small">Optionally set your own rate. It must stay within 50%–150% of the standard rate; leave it empty to use the standard rate.</p>
+      {% for s in services %}{% set o = p.offering_for(s.id) %}
+      <div class="row" style="padding:8px 0;border-bottom:1px solid var(--line-2);justify-content:space-between">
+        <label class="choice" style="margin:0;flex:1;min-width:220px"><input type="checkbox" name="svc_{{ s.id }}" {% if o %}checked{% endif %}><span><strong>{{ s.name }}</strong><span class="meta">{{ s.category.name }} · standard: {% if s.pricing_model == 'hourly' %}{{ s.hourly_rate|inr }}/hr{% elif s.pricing_model == 'quote' %}custom quote{% else %}{{ s.base_price|inr }}{% endif %}</span></span></label>
+        {% if s.pricing_model in ('hourly','fixed','visit_estimate','duration') %}<div style="width:140px"><label class="sr-only" for="rate_{{ s.id }}">Your rate for {{ s.name }}</label><input id="rate_{{ s.id }}" name="rate_{{ s.id }}" type="number" min="1" placeholder="₹ rate" value="{{ o.rate_override if o and o.rate_override else '' }}"></div>{% endif %}
+      </div>{% endfor %}</section>
+    <section class="card"><h3>Localities you serve</h3><div class="chips">{% for l in localities %}<label class="chip"><input type="checkbox" name="area_{{ l.id }}" {% if p.serves_locality(l.id) %}checked{% endif %}>{{ l.name }}</label>{% endfor %}</div></section>
+    <div><button class="btn" type="submit">Save profile</button></div>
+  </form>
+</div>
+{% endblock %}

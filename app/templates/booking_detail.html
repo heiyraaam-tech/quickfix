@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% from "macros.html" import booking_badge, badge, post_form, stars %}
+{% block title %}Booking {{ b.reference }} · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap page-head"><div class="crumbs"><a href="{{ url_for('customer.my_bookings') }}">My bookings</a> / {{ b.reference }}</div>
+  <div class="row"><h1 style="font-size:2rem;margin:0">{{ b.service.name }}</h1>{{ booking_badge(b) }}</div></div>
+<div class="wrap split" style="padding-bottom:40px">
+  <div class="grid">
+    <section class="card"><h3>Details</h3>
+      <p><strong>{{ b.scheduled_start|dt }}</strong> · {{ b.duration_minutes|hours }}<br><span class="muted">{{ b.address_text }}</span></p>
+      {% if b.tasks %}<p>Tasks: {{ b.tasks|join(', ') }}</p>{% endif %}
+      {% if b.details %}<p>{{ b.details }}</p>{% endif %}{% if b.instructions %}<p class="muted">Instructions: {{ b.instructions }}</p>{% endif %}
+      {% if b.schedule_id %}<p class="small"><a href="{{ url_for('customer.schedule_detail', ref=b.schedule.reference) }}">Part of recurring schedule {{ b.schedule.reference }}</a>{% if b.awaiting_availability %}<br>This visit is <strong>not confirmed</strong>: no professional has accepted it yet.{% endif %}</p>{% endif %}
+      {% if b.professional %}<p>Professional: <strong>{{ b.professional.user.name }}</strong>{% if b.professional.rating_avg %} · {{ b.professional.rating_avg }} ★{% endif %}{% if b.status in ('accepted','on_the_way','in_progress','completed') and b.professional.user.phone %}<br>Phone: {{ b.professional.user.phone }}{% endif %}</p>
+      {% elif b.status == 'pending' %}<p class="notice warn">Waiting for a professional to accept this request. We can't promise a time until someone does.</p>{% endif %}
+      {% if b.status == 'cancelled' %}<p class="notice bad">Cancelled{% if b.cancel_reason %}: {{ b.cancel_reason }}{% endif %}{% if b.late_cancellation %} (late cancellation){% endif %}</p>{% endif %}
+      {% if b.status == 'rejected' %}<p class="notice bad">The professional declined this request. You can book again with someone else.</p>{% endif %}
+    </section>
+    {% if can_cancel %}
+    <section class="card"><h3>Change or cancel</h3>
+      {% if can_reschedule %}
+      <form method="post" action="{{ url_for('customer.reschedule', ref=b.reference) }}" class="grid2" style="align-items:end">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="field"><label for="rd">New date</label><input id="rd" type="date" name="date" required></div>
+        <div class="field"><label for="rt">New start time</label><input id="rt" type="time" name="time" step="1800" required></div>
+        <div class="field"><button class="btn secondary" type="submit">Reschedule</button></div>
+      </form><p class="hint">Rescheduling sends the booking back to “pending” so the professional can confirm.</p>
+      {% else %}<p class="muted small">This booking starts within 2 hours, so it can't be rescheduled online.</p>{% endif %}
+      <form method="post" action="{{ url_for('customer.cancel', ref=b.reference) }}" data-confirm="Cancel booking {{ b.reference }}?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="field"><label for="reason">Reason for cancelling</label><input id="reason" name="reason" type="text" maxlength="300" required></div>
+        <button class="btn danger" type="submit">Cancel booking</button>
+        {% if b.status == 'accepted' %}<p class="hint">Cancelling an accepted booking less than 2 hours before the start is recorded as a late cancellation.</p>{% endif %}
+      </form>
+    </section>{% endif %}
+    {% if b.status == 'completed' %}
+    <section class="card"><h3>Your review</h3>
+      {% if b.review %}<p>{{ stars(b.review.rating) }}</p><p>{{ b.review.comment or 'No written comment.' }}</p>{% if b.review.status == 'hidden' %}<p class="notice warn">This review was hidden by a moderator.</p>{% endif %}
+      {% else %}
+      <form method="post" action="{{ url_for('customer.review', ref=b.reference) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <fieldset style="border:0;padding:0" class="field"><legend style="font-weight:600;font-size:.92rem">Rating</legend>
+          <div class="star-input">{% for i in [5,4,3,2,1] %}<input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" required><label for="star{{ i }}" title="{{ i }} star{{ 's' if i > 1 }}"><span class="sr-only">{{ i }} star{{ 's' if i > 1 }}</span>★</label>{% endfor %}</div></fieldset>
+        <div class="field"><label for="comment">Comment (optional)</label><textarea id="comment" name="comment" maxlength="1000"></textarea></div>
+        <button class="btn" type="submit">Submit review</button>
+      </form>{% endif %}
+    </section>{% endif %}
+  </div>
+  <aside class="grid">
+    <section class="card summary"><h3>Price</h3>
+      {% if b.visit_fee %}<div class="line"><span>Visit fee</span><span>{{ b.visit_fee|inr }}</span></div>{% endif %}
+      {% if b.service_charge %}<div class="line"><span>Service charge{% if b.is_estimate %} (estimate){% endif %}</span><span>{{ b.service_charge|inr }}</span></div>{% endif %}
+      {% if b.duration_charge %}<div class="line"><span>Duration charge</span><span>{{ b.duration_charge|inr }}</span></div>{% endif %}
+      <div class="line total"><span>{% if b.final_amount is not none %}Final amount{% else %}{{ 'Estimated total' if b.is_estimate else 'Total' }}{% endif %}</span><span>{{ b.amount_due|inr }}</span></div>
+      {% if b.price_note %}<p class="hint">{{ b.price_note }}</p>{% endif %}
+      <p>Payment: {{ badge(b.payment.status) }} <span class="muted small">cash / manual</span></p>
+    </section>
+    <section class="card"><h3>Status history</h3><ul class="timeline">{% for h in b.history %}<li><strong>{{ h.to_status.replace('_',' ')|capitalize }}</strong> <span class="muted small">{{ h.created_at|dt }}</span>{% if h.note %}<div class="small muted">{{ h.note }}</div>{% endif %}</li>{% endfor %}</ul></section>
+  </aside>
+</div>
+{% endblock %}

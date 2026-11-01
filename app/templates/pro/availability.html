@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Availability · QuickFix{% endblock %}
+{% block content %}
+<div class="wrap page-head"><h1 style="font-size:2rem">Availability</h1></div>
+<div class="wrap" style="padding-bottom:40px">
+  {% include "pro/_status_banner.html" %}
+  <div class="grid cols2" style="align-items:start">
+    <section class="card"><h3>Current status</h3>
+      <form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="status">
+        {% for v, t, m in [('available','Available','You can be matched with new jobs'),('busy','Busy','Not offered new jobs; your accepted jobs stay'),('offline','Offline','Not offered new jobs')] %}
+        <label class="choice"><input type="radio" name="availability" value="{{ v }}" {% if p.availability_status == v %}checked{% endif %}><span><strong>{{ t }}</strong><span class="meta">{{ m }}</span></span></label>{% endfor %}
+        <button class="btn" type="submit">Update status</button></form></section>
+    <section class="card"><h3>Working hours</h3><p class="muted small">Jobs are matched only inside these hours.</p>
+      <form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="hours">
+        {% for d in weekday_names %}{% set h = hours.get(loop.index0) %}
+        <div class="row" style="padding:6px 0"><label class="chip" style="min-width:100px"><input type="checkbox" name="on_{{ loop.index0 }}" {% if h %}checked{% endif %}>{{ d[:3] }}</label>
+          <label class="sr-only" for="s{{ loop.index0 }}">{{ d }} start</label><input id="s{{ loop.index0 }}" style="width:120px" type="time" name="start_{{ loop.index0 }}" value="{{ h.start_time.strftime('%H:%M') if h else '09:00' }}">
+          <span>to</span><label class="sr-only" for="e{{ loop.index0 }}">{{ d }} end</label><input id="e{{ loop.index0 }}" style="width:120px" type="time" name="end_{{ loop.index0 }}" value="{{ h.end_time.strftime('%H:%M') if h else '18:00' }}"></div>{% endfor %}
+        <button class="btn" type="submit" style="margin-top:10px">Save hours</button></form></section>
+    <section class="card" style="grid-column:1/-1"><h3>Time off</h3>
+      {% for t in time_off %}<div class="row" style="justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line-2)"><span>{{ t.start_at|dt }} → {{ t.end_at|dt }} {% if t.reason %}<span class="muted">· {{ t.reason }}</span>{% endif %}</span>
+        <form method="post" action="{{ url_for('professional.timeoff_delete', tid=t.id) }}" class="inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn ghost small" type="submit">Remove</button></form></div>{% else %}<p class="muted">No time off planned.</p>{% endfor %}
+      <form method="post" class="grid2" style="margin-top:14px"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="timeoff">
+        <div class="field"><label for="to_s">From</label><input id="to_s" type="datetime-local" name="start" required></div><div class="field"><label for="to_e">To</label><input id="to_e" type="datetime-local" name="end" required></div>
+        <div class="field"><label for="to_r">Reason (optional)</label><input id="to_r" name="reason" maxlength="120"></div><div class="field" style="align-self:end"><button class="btn secondary" type="submit">Add time off</button></div></form></section>
+  </div>
+</div>
+{% endblock %}

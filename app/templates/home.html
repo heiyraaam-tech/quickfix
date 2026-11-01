@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% from "macros.html" import icon, stars %}
+{% block content %}
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <h1>Your home, taken care of.</h1>
+      <p class="lead">Book electricians, plumbers and cleaners, or arrange everyday house help once or every week. Pick a time, see the price up front, and follow your booking.</p>
+      <form class="console" action="{{ url_for('main.services') }}" method="get" role="search">
+        <div class="cell"><label for="hero-locality">Where in Pune?</label>
+          <select id="hero-locality" data-locality-select aria-label="Locality">
+            <option value="">Choose locality</option>
+            {% for l in nav_localities %}<option value="{{ l.id }}" {% if selected_locality and selected_locality.id == l.id %}selected{% endif %}>{{ l.name }}</option>{% endfor %}
+          </select></div>
+        <div class="cell"><label for="hero-q">What do you need?</label>
+          <input id="hero-q" name="q" type="text" placeholder="Plumber, deep cleaning…" autocomplete="off" data-search="hero-suggest" aria-controls="hero-suggest"></div>
+        <div class="cell" style="align-self:end"><button class="btn block" type="submit">{{ icon('search') }} Search</button></div>
+        <div class="suggest" id="hero-suggest" role="listbox"></div>
+      </form>
+      <div class="row">
+        <a class="btn" href="{{ url_for('main.services') }}">Book a service</a>
+        <a class="btn secondary" href="{{ url_for('main.become_pro') }}">Become a professional</a>
+      </div>
+      <p class="hint" style="margin-top:14px">Currently planned for Pune localities. A booking is confirmed once a professional accepts it.</p>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <svg viewBox="0 0 420 380" width="100%" role="img" aria-label="">
+        <rect x="20" y="40" width="380" height="300" rx="28" fill="#E2F1F3"/>
+        <path d="M70 200 210 90l140 110v110H70z" fill="#fff" stroke="#11243A" stroke-width="4" stroke-linejoin="round"/>
+        <rect x="110" y="215" width="54" height="50" rx="6" fill="#E2F1F3" stroke="#11243A" stroke-width="3"/>
+        <rect x="256" y="215" width="54" height="50" rx="6" fill="#E2F1F3" stroke="#11243A" stroke-width="3"/>
+        <rect x="187" y="240" width="46" height="70" rx="6" fill="#0B7285"/>
+        <circle cx="222" cy="277" r="3" fill="#fff"/>
+        <circle cx="210" cy="175" r="20" fill="#fff" stroke="#11243A" stroke-width="3"/><path d="m201 175 7 7 12-14" fill="none" stroke="#1B7F46" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <g transform="translate(300 60)"><circle r="30" fill="#fff" stroke="#11243A" stroke-width="3"/><path d="M-9 8 6-7a8 8 0 0 0-10-10l5 5-4 4-5-5A8 8 0 0 0-7 5l-9 9" fill="none" stroke="#0B7285" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" transform="scale(.9)"/></g>
+        <g transform="translate(110 70)"><circle r="30" fill="#fff" stroke="#11243A" stroke-width="3"/><path d="M0-14 3-4 13 0 3 4 0 14-3 4-13 0-3-4z" fill="#0B7285"/></g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2>Choose a service</h2>
+    <div class="grid cols3">
+      {% for c in categories %}
+      <a class="card service-card" href="{{ url_for('main.services', category=c.slug) }}">
+        <span class="ico">{{ icon(c.icon) }}</span><h3 style="margin:8px 0 0">{{ c.name }}</h3>
+        <p class="muted" style="margin:0">{{ c.description }}</p>
+        <span class="small muted">{{ c.services|selectattr('is_active')|list|length }} services</span>
+      </a>{% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section tint">
+  <div class="wrap">
+    <h2>Popular services</h2>
+    <div class="grid cols3">
+      {% for s in popular %}
+      <a class="card service-card" href="{{ url_for('main.service_detail', slug=s.slug) }}">
+        <div class="row"><span class="ico">{{ icon(s.icon) }}</span><div><strong>{{ s.name }}</strong><div class="muted small">{{ s.category.name }}</div></div></div>
+        <p class="muted small" style="margin:6px 0 0">{{ s.description }}</p>
+      </a>{% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section" id="house-help">
+  <div class="wrap">
+    <div class="split">
+      <div>
+        <h2>House help, when you need it</h2>
+        <p class="lead muted">Sweeping and mopping, dishwashing, laundry, kitchen help and everyday chores. Book one visit, or set up a weekly pattern for the days you choose.</p>
+        <div class="chips" style="margin-bottom:20px">{% for s in house_help %}<span class="chip" style="cursor:default">{{ s.name }}</span>{% endfor %}</div>
+        <ul class="muted">
+          <li>Choose 1, 2, 3 hours or a half-day (4 hours) visit.</li>
+          <li>Recurring visits are created one by one. Each is confirmed only when a professional accepts it.</li>
+          <li>Pay in cash after each visit. You can cancel or change the schedule at any time.</li>
+        </ul>
+        <div class="row"><a class="btn" href="{{ url_for('customer.book_house_help') }}">Book house help</a><a class="btn ghost" href="{{ url_for('main.house_help') }}">How it works</a></div>
+      </div>
+      <div class="card"><h3>What you pay</h3>
+        <p class="muted small">Hourly rates (set by QuickFix, editable by admins):</p>
+        {% for s in house_help %}<div class="row" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line-2)"><span>{{ s.name }}</span><span class="price">{{ s.hourly_rate|inr }}<small>/hr</small></span></div>{% endfor %}
+        <p class="hint">When you combine tasks, the highest hourly rate among them applies.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section tint">
+  <div class="wrap">
+    <h2>How QuickFix works</h2>
+    <ol class="steps">
+      <li><strong>Choose</strong><br><span class="muted">Pick a service and tell us the details.</span></li>
+      <li><strong>Pick a time</strong><br><span class="muted">See who is available in your locality at that time.</span></li>
+      <li><strong>Review the price</strong><br><span class="muted">A clear breakdown, calculated on our server.</span></li>
+      <li><strong>Get it done</strong><br><span class="muted">Follow the status, pay after the job, and leave a review.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap grid cols2">
+    <div class="card"><span class="ico">{{ icon('shield') }}</span><h3 style="margin-top:10px">Trust and safety</h3>
+      <p class="muted">Every professional's application is reviewed by a QuickFix administrator, and only approved professionals can take bookings. This is an application review, not a background check. We don't offer insurance or guarantees yet.</p>
+      <a href="{{ url_for('main.policy', slug='safety') }}">Read safety information</a></div>
+    <div class="card"><span class="ico">{{ icon('clock') }}</span><h3 style="margin-top:10px">The booking process</h3>
+      <p class="muted">Your booking is <strong>pending</strong> until a professional <strong>accepts</strong> it. Then you can follow <em>on the way</em>, <em>in progress</em> and <em>completed</em>. You can cancel while it's pending or accepted.</p>
+      <a href="{{ url_for('main.policy', slug='cancellation') }}">Cancellation rules</a></div>
+  </div>
+</section>
+
+<section class="section tint">
+  <div class="wrap">
+    <h2>Reviews</h2>
+    {% if reviews %}
+      <div class="grid cols3">{% for r in reviews %}<div class="card flat">{{ stars(r.rating) }}<p>{{ r.comment or 'No written comment.' }}</p><p class="small muted">{{ r.customer.first_name }} · {{ r.booking.service.name }}</p></div>{% endfor %}</div>
+    {% else %}
+      <div class="empty"><h3>No reviews yet</h3><p class="muted">Reviews appear here after real customers complete real bookings. We don't publish made-up testimonials.</p></div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section" id="professionals">
+  <div class="wrap card" style="background:var(--ink);color:#fff;border:0">
+    <div class="split" style="align-items:center">
+      <div><h2 style="color:#fff">Work with QuickFix</h2><p style="color:#C9D3DE">Electricians, plumbers, cleaners and house-help professionals can register, set their own hours and areas, and accept the jobs that suit them. New profiles are reviewed before they can receive bookings.</p></div>
+      <div><a class="btn" style="background:#fff;color:var(--ink);border-color:#fff" href="{{ url_for('auth.register_professional') }}">Apply as a professional</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap" style="max-width:780px">
+    <h2>Frequently asked questions</h2>
+    {% for q, a in faqs %}<details class="faq"><summary>{{ q }}</summary><p class="muted" style="margin-top:8px">{{ a }}</p></details>{% endfor %}
+    <p><a href="{{ url_for('main.faq') }}">All questions</a></p>
+  </div>
+</section>
+{% endblock %}
